@@ -43,9 +43,9 @@ func ComputeWithOutcome(s Strategy, c <-chan *asset.Snapshot) (<-chan Action, <-
 	snapshots := helper.Duplicate(c, 2)
 
 	actions := helper.Duplicate(s.Compute(snapshots[0]), 2)
-	closings := asset.SnapshotsAsClosings(snapshots[1])
+	// closings := asset.SnapshotsAsClosings(snapshots[1])
 
-	outcomes := Outcome(closings, actions[1])
+	outcomes := Outcome(snapshots[1], actions[1])
 
 	return actions[0], outcomes
 }
