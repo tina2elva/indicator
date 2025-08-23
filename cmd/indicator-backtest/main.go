@@ -50,6 +50,18 @@ func main() {
 
 	logger := slog.Default()
 
+	reportName = "data"
+	repositoryName = "tdx"
+	repositoryConfig = "D:\\stock_datas\\vipdoc\\sz\\fzline"
+
+	asset.RegisterRepositoryBuilder("tdx", func(config string) (asset.Repository, error) {
+		return asset.NewTdxFileRepository(config, ".lc5"), nil
+	})
+
+	backtest.RegisterReportBuilder("data", func(config string) (backtest.Report, error) {
+		return backtest.NewDataReport(), nil
+	})
+
 	source, err := asset.NewRepository(repositoryName, repositoryConfig)
 	if err != nil {
 		logger.Error("Unable to initialize source.", "error", err)

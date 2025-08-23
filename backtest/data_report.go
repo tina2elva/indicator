@@ -5,6 +5,9 @@
 package backtest
 
 import (
+	"fmt"
+	"slices"
+
 	"github.com/cinar/indicator/v2/asset"
 	"github.com/cinar/indicator/v2/helper"
 	"github.com/cinar/indicator/v2/strategy"
@@ -65,7 +68,7 @@ func (d *DataReport) Write(assetName string, currentStrategy strategy.Strategy, 
 	result := &DataStrategyResult{
 		Asset:        assetName,
 		Strategy:     currentStrategy,
-		Outcome:      <-lastOutcome,
+		Outcome:      <-lastOutcome * 100,
 		Action:       <-lastAction,
 		Transactions: transactions,
 	}
@@ -76,7 +79,23 @@ func (d *DataReport) Write(assetName string, currentStrategy strategy.Strategy, 
 }
 
 // AssetEnd is called when backtesting for the given asset ends.
-func (*DataReport) AssetEnd(_ string) error {
+func (d *DataReport) AssetEnd(name string) error {
+	results, ok := d.Results[name]
+	if !ok {
+		return fmt.Errorf("asset has not begun: %s", name)
+	}
+
+	delete(d.Results, name)
+
+	// Sort the backtest results by the outcomes.
+	slices.SortFunc(results, func(a, b *DataStrategyResult) int {
+		return int(b.Outcome - a.Outcome)
+	})
+
+	bestResult := results[0]
+
+	// Report the best result for the current asset.
+	fmt.Println("Best outcome", "asset", name, "strategy", bestResult.Strategy.Name(), "outcome", bestResult.Outcome)
 	return nil
 }
 
